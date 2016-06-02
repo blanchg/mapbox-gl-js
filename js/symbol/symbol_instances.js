@@ -5,32 +5,32 @@ var util = require('../util/util');
 var Point = require('point-geometry');
 
 /*
-*
-* A StructArray implementation of symbolInstances from data/bucket/symbol_bucket.js
-* this will allow symbolInstances to be transferred between the worker and main threads
-*
-* @class SymbolInstanceArray
-* @private
-*/
+ *
+ * A StructArray implementation of symbolInstances from data/bucket/symbol_bucket.js
+ * this will allow symbolInstances to be transferred between the worker and main threads
+ *
+ * @class SymbolInstanceArray
+ * @private
+ */
 
 var SymbolInstancesArray = module.exports = new StructArrayType({
     members: [
-        // the indices of the glyph quads applicable to this particular symbol instance.
-        // we use signed ints here because a -1 indicates that glyphs and/or an icon do not
-        // exist for this instance.
-        //
-        // glyphQuadsStart/-End represent the start and end index of the glyph quads for this
-        // symbol instance in the separate symbolQuadsArray.
-        { type: 'Int16', name: 'glyphQuadsStart' },
-        { type: 'Int16', name: 'glyphQuadsEnd' },
-        { type: 'Int16', name: 'iconQuadIndex' },
 
-        // each symbolInstance is centered around the anchor point
-        { type: 'Int16', name: 'anchorPointX' },
-        { type: 'Int16', name: 'anchorPointY' },
+    { type: 'Uint16', name: 'textBoxStartIndex' },
+    { type: 'Uint16', name: 'textBoxEndIndex' },
+    { type: 'Uint16', name: 'iconBoxStartIndex' },
+    { type: 'Uint16', name: 'iconBoxEndIndex' },
+    { type: 'Uint16', name: 'glyphQuadStartIndex' },
+    { type: 'Uint16', name: 'glyphQuadEndIndex' },
+    { type: 'Uint16', name: 'iconQuadStartIndex' },
+    { type: 'Uint16', name: 'iconQuadEndIndex' },
 
-        // index -- not sure if we need this -@mollymerp
-        {type: 'Int8', name: 'index'}
+    // each symbolInstance is centered around the anchor point
+    { type: 'Int16', name: 'anchorPointX' },
+    { type: 'Int16', name: 'anchorPointY' },
+
+    // index -- not sure if we need this -@mollymerp
+    { type: 'Int8', name: 'index' }
     ]
 });
 
