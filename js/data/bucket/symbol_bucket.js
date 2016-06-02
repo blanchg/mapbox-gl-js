@@ -246,7 +246,6 @@ SymbolBucket.prototype.populateBuffers = function(collisionTile, stacks, icons) 
         }
     }
 
-
     this.placeFeatures(collisionTile, this.showCollisionBoxes);
     this.trimArrays();
 };
@@ -322,7 +321,6 @@ SymbolBucket.prototype.addFeature = function(lines, shapedText, shapedIcon, feat
             // be drawn across tile boundaries. Instead they need to be included in
             // the buffers for both tiles and clipped to tile boundaries at draw time.
             var addToBuffers = inside || mayOverlap;
-
             this.symbolInstances.push(new SymbolInstance(anchor, line, shapedText, shapedIcon, layout,
                 addToBuffers, this.symbolInstances.length, this.collisionBoxArray, featureIndex, this.sourceLayerIndex, this.index,
                 textBoxScale, textPadding, textAlongLine,
@@ -355,6 +353,7 @@ SymbolBucket.prototype.anchorIsTooClose = function(text, repeatDistance, anchor)
 
 SymbolBucket.prototype.placeFeatures = function(collisionTile, showCollisionBoxes) {
     this.recalculateStyleLayers();
+
     // Calculate which labels can be shown and when they can be shown and
     // create the bufers used for rendering.
 
@@ -368,7 +367,7 @@ SymbolBucket.prototype.placeFeatures = function(collisionTile, showCollisionBoxe
     var iconAlongLine = layout['icon-rotation-alignment'] === 'map' && layout['symbol-placement'] === 'line';
 
     var mayOverlap = layout['text-allow-overlap'] || layout['icon-allow-overlap'] ||
-            layout['text-ignore-placement'] || layout['icon-ignore-placement'];
+        layout['text-ignore-placement'] || layout['icon-ignore-placement'];
 
     // Sort symbols by their y position on the canvas so that they lower symbols
     // are drawn on top of higher symbols.
@@ -386,21 +385,10 @@ SymbolBucket.prototype.placeFeatures = function(collisionTile, showCollisionBoxe
         });
     }
 
-
-    for (var p = 0; p < this.symbolInstancesArray.length; p++) {
-        var symbolInstance = this.symbolInstancesArray.get(p);
-
-        var textCollisionFeature = {
-            boxStartIndex: symbolInstance.textBoxStartIndex,
-            boxEndIndex: symbolInstance.textBoxStartIndex
-        };
-        var iconCollisionFeature = {
-            boxStartIndex: symbolInstance.iconBoxStartIndex,
-            boxEndIndex: symbolInstance.iconBoxStartIndex
-        };
-      
-        var hasText = !(symbolInstance.glyphQuadStartIndex === symbolInstance.glyphQuadEndIndex);
-        var hasIcon = !(symbolInstance.iconQuadStartIndex === symbolInstance.iconQuadEndIndex);
+    for (var p = 0; p < this.symbolInstances.length; p++) {
+        var symbolInstance = this.symbolInstances[p];
+        var hasText = symbolInstance.hasText;
+        var hasIcon = symbolInstance.hasIcon;
 
         var iconWithoutText = layout['text-optional'] || !hasText,
             textWithoutIcon = layout['icon-optional'] || !hasIcon;
@@ -409,12 +397,13 @@ SymbolBucket.prototype.placeFeatures = function(collisionTile, showCollisionBoxe
         // Calculate the scales at which the text and icon can be placed without collision.
 
         var glyphScale = hasText ?
-            collisionTile.placeCollisionFeature( textCollisionFeature, layout['text-allow-overlap'], layout['symbol-avoid-edges']) :
+            collisionTile.placeCollisionFeature(symbolInstance.textCollisionFeature,
+                    layout['text-allow-overlap'], layout['symbol-avoid-edges']) :
             collisionTile.minScale;
 
         var iconScale = hasIcon ?
-            collisionTile.placeCollisionFeature( iconCollisionFeature,
-                layout['icon-allow-overlap'], layout['symbol-avoid-edges']) :
+            collisionTile.placeCollisionFeature(symbolInstance.iconCollisionFeature,
+                    layout['icon-allow-overlap'], layout['symbol-avoid-edges']) :
             collisionTile.minScale;
 
 
@@ -434,25 +423,25 @@ SymbolBucket.prototype.placeFeatures = function(collisionTile, showCollisionBoxe
         if (hasText) {
             collisionTile.insertCollisionFeature(symbolInstance.textCollisionFeature, glyphScale, layout['text-ignore-placement']);
             if (glyphScale <= maxScale) {
-                this.addSymbols('glyph', symbolInstance.glyphQuadStartIndex, symbolInstance.glyphQuadEndIndex, glyphScale, layout['text-keep-upright'], textAlongLine, collisionTile.angle);
+                this.addSymbols('glyph', symbolInstance.glyphQuads, glyphScale, layout['text-keep-upright'], textAlongLine, collisionTile.angle);
             }
         }
 
         if (hasIcon) {
             collisionTile.insertCollisionFeature(symbolInstance.iconCollisionFeature, iconScale, layout['icon-ignore-placement']);
             if (iconScale <= maxScale) {
-                this.addSymbols('icon', symbolInstance.iconQuadStartIndex, symbolInstance.iconQuadEndIndex, iconScale, layout['icon-keep-upright'], iconAlongLine, collisionTile.angle);
+                this.addSymbols('icon', symbolInstance.iconQuads, iconScale, layout['icon-keep-upright'], iconAlongLine, collisionTile.angle);
             }
         }
 
     }
 
     if (showCollisionBoxes) this.addToDebugBuffers(collisionTile);
-};
+}; 
 
-SymbolBucket.prototype.addSymbols = function(programName, quadsStart, quadsEnd, scale, keepUpright, alongLine, placementAngle) {
+SymbolBucket.prototype.addSymbols = function(programName, quads, scale, keepUpright, alongLine, placementAngle) {
 
-    var group = this.makeRoomFor(programName, 4 * (quadsEnd-quadsStart));
+    var group = this.makeRoomFor(programName, 4 * quads.length);
 
     var elementArray = group.layout.element;
     var vertexArray = group.layout.vertex;
@@ -460,9 +449,9 @@ SymbolBucket.prototype.addSymbols = function(programName, quadsStart, quadsEnd, 
     var zoom = this.zoom;
     var placementZoom = Math.max(Math.log(scale) / Math.LN2 + zoom, 0);
 
-    for (var k = quadsStart; k < quadsEnd; k++) {
+    for (var k = 0; k < quads.length; k++) {
 
-        var symbol = this.symbolQuadsArray.get(k),
+        var symbol = quads[k],
             angle = symbol.angle;
 
         // drop upside down versions of glyphs
@@ -494,6 +483,7 @@ SymbolBucket.prototype.addSymbols = function(programName, quadsStart, quadsEnd, 
     }
 
 };
+
 
 SymbolBucket.prototype.updateIcons = function(icons) {
     this.recalculateStyleLayers();
