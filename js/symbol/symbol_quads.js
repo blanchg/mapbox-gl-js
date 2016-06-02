@@ -52,5 +52,8 @@ var SymbolQuadsArray = module.exports = new StructArrayType({
 util.extendAll(SymbolQuadsArray.prototype.StructType.prototype, {
     get anchorPoint() {
         return new Point(this.anchorPointX, this.anchorPointY);
+    },
+    get tex(){
+        return {x: this.texX, y: this.texY, h: this.texH, w: this.texW}
     }
 });
