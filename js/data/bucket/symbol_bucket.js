@@ -150,6 +150,7 @@ SymbolBucket.prototype.populateBuffers = function(collisionTile, stacks, icons) 
     this.compareText = {};
     this.symbolInstances = [];
     this.iconsNeedLinear = false;
+    this.symbolInstancesStartIndex = this.symbolInstancesArray.length;
 
     var layout = this.layer.layout;
     var features = this.features;
@@ -245,7 +246,7 @@ SymbolBucket.prototype.populateBuffers = function(collisionTile, stacks, icons) 
             this.addFeature(geometries[k], shapedText, shapedIcon, features[k].index);
         }
     }
-
+    this.symbolInstancesEndIndex = this.symbolInstancesArray.length;
     this.placeFeatures(collisionTile, this.showCollisionBoxes);
     this.trimArrays();
 };
@@ -385,10 +386,10 @@ SymbolBucket.prototype.placeFeatures = function(collisionTile, showCollisionBoxe
         });
     }
 
-    for (var p = 0; p < this.symbolInstances.length; p++) {
-        var symbolInstance = this.symbolInstances[p];
-        var hasText = symbolInstance.hasText;
-        var hasIcon = symbolInstance.hasIcon;
+    for (var p = this.symbolInstancesStartIndex; p < this.symbolInstancesEndIndex; p++) {
+        var symbolInstance = this.symbolInstancesArray.get(p);
+        var hasText = !(symbolInstance.glyphQuadStartIndex === symbolInstance.glyphQuadEndIndex);
+        var hasIcon = !(symbolInstance.iconQuadStartIndex === symbolInstance.iconQuadEndIndex);
 
         var iconWithoutText = layout['text-optional'] || !hasText,
             textWithoutIcon = layout['icon-optional'] || !hasIcon;
