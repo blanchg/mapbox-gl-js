@@ -374,20 +374,14 @@ SymbolBucket.prototype.placeFeatures = function(collisionTile, showCollisionBoxe
     // are drawn on top of higher symbols.
     // Don't sort symbols that won't overlap because it isn't necessary and
     // because it causes more labels to pop in and out when rotating.
+
     if (mayOverlap) {
         var angle = collisionTile.angle;
-        var sin = Math.sin(angle),
-            cos = Math.cos(angle);
-
-        this.symbolInstances.sort(function(a, b) {
-            var aRotated = (sin * a.x + cos * a.y) | 0;
-            var bRotated = (sin * b.x + cos * b.y) | 0;
-            return (aRotated - bRotated) || (b.index - a.index);
-        });
+        this.sortedSymbolInstances = this.symbolInstancesArray.sort(angle, this.symbolInstancesStartIndex, this.symbolInstancesEndIndex);
     }
 
     for (var p = this.symbolInstancesStartIndex; p < this.symbolInstancesEndIndex; p++) {
-        var symbolInstance = this.symbolInstancesArray.get(p);
+        var symbolInstance = this.sortedSymbolInstances ? this.sortedSymbolInstances[p - this.symbolInstancesStartIndex] : this.symbolInstancesArray.get(p);
         var textCollisionFeature = {
             boxStartIndex: symbolInstance.textBoxStartIndex,
             boxEndIndex: symbolInstance.textBoxEndIndex

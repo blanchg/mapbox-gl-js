@@ -309,34 +309,6 @@ StructArray.prototype.resize = function(n) {
     }
 };
 
-/**
- * Sort the StructArray.
- * Sort symbols by their y position on the canvas so that the lower symbols
- * are drawn on top of higher symbols.
- * Only called when overlap is allowed.
- * @param {angle} angle CollisionTile angle
- */
-
-StructArray.prototype.sort = function (angle) {
-    var array = [];
-
-    for (var i = 0; i < this.length; i++) {
-        var struct = this.get(i);
-        array.push(struct);
-    }
-
-    var sin = Math.sin(angle),
-        cos = Math.cos(angle);
-
-    var sorted = array.sort(function (a, b) {
-        var aRotated = (sin * a.x + cos * a.y) | 0;
-        var bRotated = (sin * b.x + cos * b.y) | 0;
-        return (aRotated - bRotated) || (b.index - a.index);
-    });
-
-    return sorted;
-};
-
 
 /**
  * Create TypedArray views for the current ArrayBuffer.
