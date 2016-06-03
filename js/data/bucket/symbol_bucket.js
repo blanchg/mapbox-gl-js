@@ -388,6 +388,15 @@ SymbolBucket.prototype.placeFeatures = function(collisionTile, showCollisionBoxe
 
     for (var p = this.symbolInstancesStartIndex; p < this.symbolInstancesEndIndex; p++) {
         var symbolInstance = this.symbolInstancesArray.get(p);
+        var textCollisionFeature = {
+            boxStartIndex: symbolInstance.textBoxStartIndex,
+            boxEndIndex: symbolInstance.textBoxStartIndex
+        };
+        var iconCollisionFeature = {
+            boxStartIndex: symbolInstance.iconBoxStartIndex,
+            boxEndIndex: symbolInstance.iconBoxStartIndex
+        };
+
         var hasText = !(symbolInstance.glyphQuadStartIndex === symbolInstance.glyphQuadEndIndex);
         var hasIcon = !(symbolInstance.iconQuadStartIndex === symbolInstance.iconQuadEndIndex);
 
@@ -398,13 +407,12 @@ SymbolBucket.prototype.placeFeatures = function(collisionTile, showCollisionBoxe
         // Calculate the scales at which the text and icon can be placed without collision.
 
         var glyphScale = hasText ?
-            collisionTile.placeCollisionFeature(symbolInstance.textCollisionFeature,
-                    layout['text-allow-overlap'], layout['symbol-avoid-edges']) :
+            collisionTile.placeCollisionFeature(textCollisionFeature, layout['text-allow-overlap'], layout['symbol-avoid-edges']) :
             collisionTile.minScale;
 
         var iconScale = hasIcon ?
-            collisionTile.placeCollisionFeature(symbolInstance.iconCollisionFeature,
-                    layout['icon-allow-overlap'], layout['symbol-avoid-edges']) :
+            collisionTile.placeCollisionFeature(iconCollisionFeature,
+                layout['icon-allow-overlap'], layout['symbol-avoid-edges']) :
             collisionTile.minScale;
 
 
@@ -422,27 +430,27 @@ SymbolBucket.prototype.placeFeatures = function(collisionTile, showCollisionBoxe
         // Insert final placement into collision tree and add glyphs/icons to buffers
 
         if (hasText) {
-            collisionTile.insertCollisionFeature(symbolInstance.textCollisionFeature, glyphScale, layout['text-ignore-placement']);
+            collisionTile.insertCollisionFeature(textCollisionFeature, glyphScale, layout['text-ignore-placement']);
             if (glyphScale <= maxScale) {
-                this.addSymbols('glyph', symbolInstance.glyphQuads, glyphScale, layout['text-keep-upright'], textAlongLine, collisionTile.angle);
+                this.addSymbols('glyph', symbolInstance.glyphQuadStartIndex, symbolInstance.glyphQuadEndIndex, glyphScale, layout['text-keep-upright'], textAlongLine, collisionTile.angle, p);
             }
         }
 
         if (hasIcon) {
-            collisionTile.insertCollisionFeature(symbolInstance.iconCollisionFeature, iconScale, layout['icon-ignore-placement']);
+            collisionTile.insertCollisionFeature(iconCollisionFeature, iconScale, layout['icon-ignore-placement']);
             if (iconScale <= maxScale) {
-                this.addSymbols('icon', symbolInstance.iconQuads, iconScale, layout['icon-keep-upright'], iconAlongLine, collisionTile.angle);
+                this.addSymbols('icon', symbolInstance.iconQuadStartIndex, symbolInstance.iconQuadEndIndex, iconScale, layout['icon-keep-upright'], iconAlongLine, collisionTile.angle, p);
             }
         }
 
     }
 
     if (showCollisionBoxes) this.addToDebugBuffers(collisionTile);
-}; 
+};
 
-SymbolBucket.prototype.addSymbols = function(programName, quads, scale, keepUpright, alongLine, placementAngle) {
+SymbolBucket.prototype.addSymbols = function(programName, quadsStart, quadsEnd, scale, keepUpright, alongLine, placementAngle, p) {
 
-    var group = this.makeRoomFor(programName, 4 * quads.length);
+    var group = this.makeRoomFor(programName, 4 * quadsEnd - quadsStart);
 
     var elementArray = group.layout.element;
     var vertexArray = group.layout.vertex;
@@ -450,11 +458,12 @@ SymbolBucket.prototype.addSymbols = function(programName, quads, scale, keepUpri
     var zoom = this.zoom;
     var placementZoom = Math.max(Math.log(scale) / Math.LN2 + zoom, 0);
 
-    for (var k = 0; k < quads.length; k++) {
+    for (var k = quadsStart; k < quadsEnd; k++) {
 
-        var symbol = quads[k],
+        var symbol = this.symbolQuadsArray.get(k).SymbolQuad,
             angle = symbol.angle;
 
+        if (k === quadsStart && programName === "glyph") console.log(symbol, this.symbolInstances[p - this.symbolInstancesStartIndex].glyphQuads[0]);
         // drop upside down versions of glyphs
         var a = (angle + placementAngle + Math.PI) % (Math.PI * 2);
         if (keepUpright && alongLine && (a <= Math.PI / 2 || a > Math.PI * 3 / 2)) continue;
@@ -637,7 +646,7 @@ SymbolBucket.prototype.addSymbolQuad = function(symbolQuad) {
         //angle
         symbolQuad.angle,
         // scales
-        symbolQuad.minScale,
-        symbolQuad.maxScale);
+        symbolQuad.maxScale,
+        symbolQuad.minScale);
 };
 

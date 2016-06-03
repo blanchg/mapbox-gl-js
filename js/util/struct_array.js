@@ -320,7 +320,7 @@ StructArray.prototype.resize = function(n) {
 StructArray.prototype.sort = function (angle) {
     var array = [];
 
-    for (var i =0; i< this.length; i++) {
+    for (var i = 0; i < this.length; i++) {
         var struct = this.get(i);
         array.push(struct);
     }
@@ -328,14 +328,14 @@ StructArray.prototype.sort = function (angle) {
     var sin = Math.sin(angle),
         cos = Math.cos(angle);
 
-    var sorted = array.sort(function (a,b){
+    var sorted = array.sort(function (a, b) {
         var aRotated = (sin * a.x + cos * a.y) | 0;
         var bRotated = (sin * b.x + cos * b.y) | 0;
         return (aRotated - bRotated) || (b.index - a.index);
     });
 
     return sorted;
-}
+};
 
 
 /**

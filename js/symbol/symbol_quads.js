@@ -3,19 +3,20 @@
 var StructArrayType = require('../util/struct_array');
 var util = require('../util/util');
 var Point = require('point-geometry');
+var SymbolQuad = require('./quads').SymbolQuad;
 
 // notes from ansis on slack:
 // it would be best if they are added to a buffer in advance so that they are only created once. There would be a separate buffer with all the individual collision boxes and then SymbolInstance would store the beginning and end indexes of a feature's collisionboxes. CollisionFeature wouldn't really exist as a standalone thing, it would just be a range of boxes in the big collision box buffer
 
 /*
-*
-* A StructArray implementation of glyphQuad from symbol/quads
-* this will allow glyph quads to be transferred between the worker and main threads along with the rest of
-* the symbolInstances
-*
-* @class SymbolQuadsArray
-* @private
-*/
+ *
+ * A StructArray implementation of glyphQuad from symbol/quads
+ * this will allow glyph quads to be transferred between the worker and main threads along with the rest of
+ * the symbolInstances
+ *
+ * @class SymbolQuadsArray
+ * @private
+ */
 
 var SymbolQuadsArray = module.exports = new StructArrayType({
     members: [
@@ -53,7 +54,16 @@ util.extendAll(SymbolQuadsArray.prototype.StructType.prototype, {
     get anchorPoint() {
         return new Point(this.anchorPointX, this.anchorPointY);
     },
-    get tex(){
-        return {x: this.texX, y: this.texY, h: this.texH, w: this.texW}
+    get SymbolQuad() {
+        return new SymbolQuad(this.anchorPoint,
+            new Point(this.tlX, this.tlY),
+            new Point(this.trX, this.trY),
+            new Point(this.blX, this.blY),
+            new Point(this.brX, this.brY),
+            { x: this.texX, y: this.texY, h: this.texH, w: this.texW, height: this.texH, width: this.texW },
+            this.angle,
+            this.minScale,
+            this.maxScale);
     }
 });
+
