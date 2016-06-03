@@ -26,14 +26,14 @@ var SymbolQuadsArray = module.exports = new StructArrayType({
 
         // the offsets of the tl (top-left), tr, bl, br corners from the anchor point
         // do these need to be floats?
-        { type: 'Int16', name: 'tlX' },
-        { type: 'Int16', name: 'tlY' },
-        { type: 'Int16', name: 'trX' },
-        { type: 'Int16', name: 'trY' },
-        { type: 'Int16', name: 'blX' },
-        { type: 'Int16', name: 'blY' },
-        { type: 'Int16', name: 'brX' },
-        { type: 'Int16', name: 'brY' },
+        { type: 'Float32', name: 'tlX' },
+        { type: 'Float32', name: 'tlY' },
+        { type: 'Float32', name: 'trX' },
+        { type: 'Float32', name: 'trY' },
+        { type: 'Float32', name: 'blX' },
+        { type: 'Float32', name: 'blY' },
+        { type: 'Float32', name: 'brX' },
+        { type: 'Float32', name: 'brY' },
 
         // texture coordinates (height, width, x, and y)
         { type: 'Int16', name: 'texH' },

@@ -148,7 +148,6 @@ SymbolBucket.prototype.populateBuffers = function(collisionTile, stacks, icons) 
     var tileSize = 512 * this.overscaling;
     this.tilePixelRatio = EXTENT / tileSize;
     this.compareText = {};
-    this.symbolInstances = [];
     this.iconsNeedLinear = false;
     this.symbolInstancesStartIndex = this.symbolInstancesArray.length;
 
@@ -322,10 +321,6 @@ SymbolBucket.prototype.addFeature = function(lines, shapedText, shapedIcon, feat
             // be drawn across tile boundaries. Instead they need to be included in
             // the buffers for both tiles and clipped to tile boundaries at draw time.
             var addToBuffers = inside || mayOverlap;
-            this.symbolInstances.push(new SymbolInstance(anchor, line, shapedText, shapedIcon, layout,
-                addToBuffers, this.symbolInstances.length, this.collisionBoxArray, featureIndex, this.sourceLayerIndex, this.index,
-                textBoxScale, textPadding, textAlongLine,
-                iconBoxScale, iconPadding, iconAlongLine));
             this.addSymbolInstance(anchor, line, shapedText, shapedIcon, layout,
                 addToBuffers, this.symbolInstancesArray.length, this.collisionBoxArray, featureIndex, this.sourceLayerIndex, this.index,
                 textBoxScale, textPadding, textAlongLine,
@@ -379,7 +374,7 @@ SymbolBucket.prototype.placeFeatures = function(collisionTile, showCollisionBoxe
         var angle = collisionTile.angle;
         this.sortedSymbolInstances = this.symbolInstancesArray.sort(angle, this.symbolInstancesStartIndex, this.symbolInstancesEndIndex);
     }
-    // console.log("sorted", this.sortedSymbolInstances);
+
     for (var p = this.symbolInstancesStartIndex; p < this.symbolInstancesEndIndex; p++) {
         var symbolInstance = this.sortedSymbolInstances ? this.sortedSymbolInstances[p - this.symbolInstancesStartIndex] : this.symbolInstancesArray.get(p);
         var textCollisionFeature = {
@@ -515,9 +510,13 @@ SymbolBucket.prototype.addToDebugBuffers = function(collisionTile) {
     var angle = -collisionTile.angle;
     var yStretch = collisionTile.yStretch;
 
-    for (var j = 0; j < this.symbolInstances.length; j++) {
+    for (var j = this.symbolInstancesStartIndex; j < this.symbolInstancesEndIndex; j++) {
+        var symbolInstance = this.symbolInstancesArray.get(j);
+        symbolInstance.textCollisionFeature = {boxStartIndex: symbolInstance.textBoxStartIndex, boxEndIndex: symbolInstance.textBoxEndIndex};
+        symbolInstance.iconCollisionFeature = {boxStartIndex: symbolInstance.iconBoxStartIndex, boxEndIndex: symbolInstance.iconBoxEndIndex};
+
         for (var i = 0; i < 2; i++) {
-            var feature = this.symbolInstances[j][i === 0 ? 'textCollisionFeature' : 'iconCollisionFeature'];
+            var feature = symbolInstance[i === 0 ? 'textCollisionFeature' : 'iconCollisionFeature'];
             if (!feature) continue;
 
             for (var b = feature.boxStartIndex; b < feature.boxEndIndex; b++) {
@@ -544,29 +543,6 @@ SymbolBucket.prototype.addToDebugBuffers = function(collisionTile) {
         }
     }
 };
-
-function SymbolInstance(anchor, line, shapedText, shapedIcon, layout, addToBuffers, index, collisionBoxArray, featureIndex, sourceLayerIndex, bucketIndex,
-    textBoxScale, textPadding, textAlongLine,
-    iconBoxScale, iconPadding, iconAlongLine) {
-
-    this.x = anchor.x;
-    this.y = anchor.y;
-    this.index = index;
-    this.hasText = !!shapedText;
-    this.hasIcon = !!shapedIcon;
-
-    if (this.hasText) {
-        this.glyphQuads = addToBuffers ? getGlyphQuads(anchor, shapedText, textBoxScale, line, layout, textAlongLine) : [];
-        this.textCollisionFeature = new CollisionFeature(collisionBoxArray, line, anchor, featureIndex, sourceLayerIndex, bucketIndex,
-            shapedText, textBoxScale, textPadding, textAlongLine, false);
-    }
-
-    if (this.hasIcon) {
-        this.iconQuads = addToBuffers ? getIconQuads(anchor, shapedIcon, iconBoxScale, line, layout, iconAlongLine) : [];
-        this.iconCollisionFeature = new CollisionFeature(collisionBoxArray, line, anchor, featureIndex, sourceLayerIndex, bucketIndex,
-            shapedIcon, iconBoxScale, iconPadding, iconAlongLine, true);
-    }
-}
 
 SymbolBucket.prototype.addSymbolInstance = function(anchor, line, shapedText, shapedIcon, layout, addToBuffers, index, collisionBoxArray, featureIndex, sourceLayerIndex, bucketIndex,
     textBoxScale, textPadding, textAlongLine,
