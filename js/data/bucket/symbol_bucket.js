@@ -370,7 +370,7 @@ SymbolBucket.prototype.placeFeatures = function(collisionTile, showCollisionBoxe
     var mayOverlap = layout['text-allow-overlap'] || layout['icon-allow-overlap'] ||
         layout['text-ignore-placement'] || layout['icon-ignore-placement'];
 
-    // Sort symbols by their y position on the canvas so that they lower symbols
+    // Sort symbols by their y position on the canvas so that the lower symbols
     // are drawn on top of higher symbols.
     // Don't sort symbols that won't overlap because it isn't necessary and
     // because it causes more labels to pop in and out when rotating.
@@ -379,7 +379,7 @@ SymbolBucket.prototype.placeFeatures = function(collisionTile, showCollisionBoxe
         var angle = collisionTile.angle;
         this.sortedSymbolInstances = this.symbolInstancesArray.sort(angle, this.symbolInstancesStartIndex, this.symbolInstancesEndIndex);
     }
-
+    // console.log("sorted", this.sortedSymbolInstances);
     for (var p = this.symbolInstancesStartIndex; p < this.symbolInstancesEndIndex; p++) {
         var symbolInstance = this.sortedSymbolInstances ? this.sortedSymbolInstances[p - this.symbolInstancesStartIndex] : this.symbolInstancesArray.get(p);
         var textCollisionFeature = {
@@ -445,7 +445,7 @@ SymbolBucket.prototype.placeFeatures = function(collisionTile, showCollisionBoxe
 
 SymbolBucket.prototype.addSymbols = function(programName, quadsStart, quadsEnd, scale, keepUpright, alongLine, placementAngle) {
 
-    var group = this.makeRoomFor(programName, 4 * quadsEnd - quadsStart);
+    var group = this.makeRoomFor(programName, 4 * (quadsEnd - quadsStart));
 
     var elementArray = group.layout.element;
     var vertexArray = group.layout.vertex;

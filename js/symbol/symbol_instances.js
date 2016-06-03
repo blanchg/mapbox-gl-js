@@ -61,8 +61,8 @@ util.extend(SymbolInstancesArray.prototype, {
             cos = Math.cos(angle);
 
         var sorted = array.sort(function(a, b) {
-            var aRotated = (sin * a.x + cos * a.y) | 0;
-            var bRotated = (sin * b.x + cos * b.y) | 0;
+            var aRotated = (sin * a.anchorPointX + cos * a.anchorPointY) | 0;
+            var bRotated = (sin * b.anchorPointX + cos * b.anchorPointY) | 0;
             return (aRotated - bRotated) || (b.index - a.index);
         });
 
