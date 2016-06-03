@@ -390,12 +390,13 @@ SymbolBucket.prototype.placeFeatures = function(collisionTile, showCollisionBoxe
         var symbolInstance = this.symbolInstancesArray.get(p);
         var textCollisionFeature = {
             boxStartIndex: symbolInstance.textBoxStartIndex,
-            boxEndIndex: symbolInstance.textBoxStartIndex
+            boxEndIndex: symbolInstance.textBoxEndIndex
         };
         var iconCollisionFeature = {
             boxStartIndex: symbolInstance.iconBoxStartIndex,
-            boxEndIndex: symbolInstance.iconBoxStartIndex
+            boxEndIndex: symbolInstance.iconBoxEndIndex
         };
+
 
         var hasText = !(symbolInstance.glyphQuadStartIndex === symbolInstance.glyphQuadEndIndex);
         var hasIcon = !(symbolInstance.iconQuadStartIndex === symbolInstance.iconQuadEndIndex);
@@ -432,14 +433,14 @@ SymbolBucket.prototype.placeFeatures = function(collisionTile, showCollisionBoxe
         if (hasText) {
             collisionTile.insertCollisionFeature(textCollisionFeature, glyphScale, layout['text-ignore-placement']);
             if (glyphScale <= maxScale) {
-                this.addSymbols('glyph', symbolInstance.glyphQuadStartIndex, symbolInstance.glyphQuadEndIndex, glyphScale, layout['text-keep-upright'], textAlongLine, collisionTile.angle, p);
+                this.addSymbols('glyph', symbolInstance.glyphQuadStartIndex, symbolInstance.glyphQuadEndIndex, glyphScale, layout['text-keep-upright'], textAlongLine, collisionTile.angle);
             }
         }
 
         if (hasIcon) {
             collisionTile.insertCollisionFeature(iconCollisionFeature, iconScale, layout['icon-ignore-placement']);
             if (iconScale <= maxScale) {
-                this.addSymbols('icon', symbolInstance.iconQuadStartIndex, symbolInstance.iconQuadEndIndex, iconScale, layout['icon-keep-upright'], iconAlongLine, collisionTile.angle, p);
+                this.addSymbols('icon', symbolInstance.iconQuadStartIndex, symbolInstance.iconQuadEndIndex, iconScale, layout['icon-keep-upright'], iconAlongLine, collisionTile.angle);
             }
         }
 
@@ -448,7 +449,7 @@ SymbolBucket.prototype.placeFeatures = function(collisionTile, showCollisionBoxe
     if (showCollisionBoxes) this.addToDebugBuffers(collisionTile);
 };
 
-SymbolBucket.prototype.addSymbols = function(programName, quadsStart, quadsEnd, scale, keepUpright, alongLine, placementAngle, p) {
+SymbolBucket.prototype.addSymbols = function(programName, quadsStart, quadsEnd, scale, keepUpright, alongLine, placementAngle) {
 
     var group = this.makeRoomFor(programName, 4 * quadsEnd - quadsStart);
 
@@ -463,7 +464,6 @@ SymbolBucket.prototype.addSymbols = function(programName, quadsStart, quadsEnd, 
         var symbol = this.symbolQuadsArray.get(k).SymbolQuad,
             angle = symbol.angle;
 
-        if (k === quadsStart && programName === "glyph") console.log(symbol, this.symbolInstances[p - this.symbolInstancesStartIndex].glyphQuads[0]);
         // drop upside down versions of glyphs
         var a = (angle + placementAngle + Math.PI) % (Math.PI * 2);
         if (keepUpright && alongLine && (a <= Math.PI / 2 || a > Math.PI * 3 / 2)) continue;
@@ -599,6 +599,7 @@ SymbolBucket.prototype.addSymbolInstance = function(anchor, line, shapedText, sh
     if (shapedIcon) {
         iconQuads = addToBuffers ? getIconQuads(anchor, shapedIcon, iconBoxScale, line, layout, iconAlongLine) : [];
         iconCollisionFeature = new CollisionFeature(collisionBoxArray, line, anchor, featureIndex, sourceLayerIndex, bucketIndex, shapedIcon, iconBoxScale, iconPadding, iconAlongLine, true);
+
     }
 
     iconQuadStartIndex = this.symbolQuadsArray.length;
