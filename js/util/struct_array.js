@@ -309,7 +309,6 @@ StructArray.prototype.resize = function(n) {
     }
 };
 
-
 /**
  * Create TypedArray views for the current ArrayBuffer.
  * @private
